@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tixoraa Deployment Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #4f46e5;
+        }
+        .section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f9fafb;
+        }
+        .warning {
+            background-color: #fffbeb;
+            border-color: #f59e0b;
+        }
+        .success {
+            background-color: #ecfdf5;
+            border-color: #10b981;
+        }
+        .info {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+        .error {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+        }
+        code {
+            background-color: #f3f4f6;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        pre {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        ul, ol {
+            margin-bottom: 10px;
+        }
+        .step {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .step::before {
+            content: attr(data-number);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tixoraa Deployment Guide</h1>
+    
+    <div class="section info">
+        <h2>Overview</h2>
+        <p>This guide will help you deploy Tixoraa to production on Replit. The application consists of several key components:</p>
+        <ul>
+            <li><strong>Frontend:</strong> React with TypeScript, built with Vite</li>
+            <li><strong>Backend:</strong> Express server for API endpoints</li>
+            <li><strong>Database:</strong> PostgreSQL with Drizzle ORM</li>
+            <li><strong>External Services:</strong> Perplexity API, Anthropic Claude, SendGrid Email</li>
+        </ul>
+    </div>
+    
+    <div class="section warning">
+        <h2>Current Issues Preventing Deployment</h2>
+        <ol>
+            <li>The <code>.replit</code> file has a duplicate <code>[env]</code> section causing Node.js installation to fail</li>
+            <li>Node.js is not installed, preventing any scripts from running</li>
+            <li>The frontend has not been built and copied to the proper location for deployment</li>
+            <li>Missing or incorrect environment variables for external services</li>
+        </ol>
+    </div>
+    
+    <h2>Deployment Steps</h2>
+    
+    <div class="section">
+        <h3>1. Fix .replit Configuration</h3>
+        <div class="step" data-number="1">
+            <p>Run the Python script to fix the .replit file:</p>
+            <pre>python fix_replit.py</pre>
+            <p>This script:</p>
+            <ul>
+                <li>Removes duplicate [env] sections</li>
+                <li>Ensures correct nix channel configuration</li>
+                <li>Sets the proper run command</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>2. Install Node.js and Dependencies</h3>
+        <div class="step" data-number="1">
+            <p>After fixing the .replit file, install Node.js from the Replit Packages tab:</p>
+            <ul>
+                <li>Click on "Packages" in the Replit sidebar</li>
+                <li>Search for "nodejs-20"</li>
+                <li>Click "Install"</li>
+            </ul>
+        </div>
+        <div class="step" data-number="2">
+            <p>Install backend dependencies:</p>
+            <pre>npm install</pre>
+        </div>
+        <div class="step" data-number="3">
+            <p>Install frontend dependencies:</p>
+            <pre>cd client && npm install && cd ..</pre>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>3. Build the Frontend</h3>
+        <div class="step" data-number="1">
+            <p>Build the frontend application:</p>
+            <pre>cd client && npm run build && cd ..</pre>
+        </div>
+        <div class="step" data-number="2">
+            <p>Create the dist/public directory and copy the built frontend:</p>
+            <pre>mkdir -p dist/public
+cp -r client/dist/* dist/public/</pre>
+        </div>
+        <div class="step" data-number="3">
+            <p>Create a symbolic link for static file serving:</p>
+            <pre>cd server && ln -sf ../dist/public public && cd ..</pre>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>4. Configure Environment Variables</h3>
+        <div class="step" data-number="1">
+            <p>Set up required environment variables in Replit Secrets:</p>
+            <ul>
+                <li><code>PERPLEXITY_API_KEY</code> - For event insights and recommendations</li>
+                <li><code>ANTHROPIC_API_KEY</code> - For event feedback and audience targeting analysis</li>
+                <li><code>SENDGRID_API_KEY</code> - For email notifications and verification codes</li>
+                <li><code>SENDGRID_FROM_EMAIL</code> - Set to <code>Services@tixoraa.com</code></li>
+            </ul>
+            <p>Database variables are automatically set by Replit:</p>
+            <ul>
+                <li><code>DATABASE_URL</code></li>
+                <li><code>PGHOST</code>, <code>PGPORT</code>, <code>PGUSER</code>, <code>PGPASSWORD</code>, <code>PGDATABASE</code></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>5. Start the Application</h3>
+        <div class="step" data-number="1">
+            <p>Start the server with the keepalive script:</p>
+            <pre>PORT=5000 node run-with-keepalive.js</pre>
+        </div>
+        <div class="step" data-number="2">
+            <p>Alternatively, use the simple server for testing:</p>
+            <pre>node simple-server.js</pre>
+        </div>
+    </div>
+    
+    <div class="section info">
+        <h3>API Model Information</h3>
+        <p>The application uses the following API models:</p>
+        <ul>
+            <li><strong>Perplexity API:</strong> <code>llama-3.1-sonar-small-128k-online</code></li>
+            <li><strong>Anthropic Claude:</strong> <code>claude-3-7-sonnet-20250219</code></li>
+            <li><strong>SendGrid Email:</strong> From address <code>Services@tixoraa.com</code></li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h3>6. Verify Deployment</h3>
+        <div class="step" data-number="1">
+            <p>Check the test page to verify static file serving:</p>
+            <ul>
+                <li>Navigate to <code>/test.html</code></li>
+                <li>Verify the page loads correctly</li>
+            </ul>
+        </div>
+        <div class="step" data-number="2">
+            <p>Test the API health endpoint:</p>
+            <ul>
+                <li>Navigate to <code>/api/health</code></li>
+                <li>Verify a JSON response with status "ok"</li>
+            </ul>
+        </div>
+        <div class="step" data-number="3">
+            <p>Verify external services:</p>
+            <ul>
+                <li>Check Perplexity API: <code>/api/perplexity/health</code></li>
+                <li>Check Anthropic API: <code>/api/anthropic/health</code></li>
+                <li>Check SendGrid: <code>/api/email/health</code></li>
+                <li>Check Database: <code>/api/db/health</code></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section success">
+        <h2>Quick Fixes for Common Issues</h2>
+        
+        <h3>Node.js Not Found</h3>
+        <p>This is likely due to the duplicate [env] section in .replit:</p>
+        <pre>python fix_replit.py</pre>
+        <p>Then reinstall Node.js from the Packages tab.</p>
+        
+        <h3>Frontend Not Loading</h3>
+        <p>Verify the frontend is built and copied correctly:</p>
+        <pre>mkdir -p dist/public
+cp -r client/dist/* dist/public/</pre>
+        
+        <h3>Database Connection Issues</h3>
+        <p>Replit should automatically create a PostgreSQL database. Check your environment variables in the Secrets tab.</p>
+        
+        <h3>API Connection Issues</h3>
+        <p>Ensure all required API keys are set in the Replit Secrets tab.</p>
+    </div>
+    
+    <div class="section">
+        <h2>Alternative Simple Server</h2>
+        <p>A simple Express server has been created for basic static file serving and testing:</p>
+        <pre>node simple-server.js</pre>
+        <p>This server:</p>
+        <ul>
+            <li>Serves static files from dist/public</li>
+            <li>Includes a basic /api/health endpoint</li>
+            <li>Shows a diagnostic page if no frontend files are found</li>
+            <li>Requires minimal dependencies</li>
+        </ul>
+    </div>
+    
+    <p>If you encounter any issues during deployment, check the console logs for error messages and refer to the appropriate section in this guide.</p>
+</body>
+</html>
